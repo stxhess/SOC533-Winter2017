@@ -7,7 +7,7 @@ This repository includes a leslie matrix computed from the Human Mortality Datab
 
 The first step was to read the headers from the raw text files obtained from HMD/HFD. Once R's base function `read.table` parses the files, we have objects `mort` and `fert` to munge towards the desired estimates of fertility rates and survivorship.
 
-```
+```r
 readLines("SWEbirthsTR.txt", n=10)
 fert <- read.table("SWEbirthsTR.txt", skip=2, header=T)
 
@@ -20,7 +20,7 @@ mort <- read.table("fltcoh_5x5.txt", skip=2, header=T)
 
 Dplyr `Filter` functions on the `fert` and `mort` objects selects the rows from the long form data that we are interested in.
 
-```
+```r
 fert <- fert %>%
   filter(Year>=1900, Cohort==1900)
 
@@ -32,7 +32,7 @@ mort <- mort %>%
 
 A new dataframe `fert5` takes the column of age ranges from the mortality life table, and then adds a blank column of zeroes for each row. Since the age groups are not completely aligned between the data, the next lines sum the youngest ages where births were documented (12-14) to fill the 10-14 element for A_1, followed by a loop that takes sums the number of births within the age ranges of the mortality data.
 
-```
+```r
 #total number of daughters within step/total number of person years lived
 
 fert5 <- data.frame(
@@ -57,7 +57,7 @@ for(i in 1:length(fert5$totbirths)){
 
 An inner join using dplyr's `inner_join` function creates a table of mortality and fertility variables for the 1900 cohort from Sweden
 
-```
+```r
 sweden <- inner_join(mort, fert5, by=c("Age" = "age"))
 ```
 
@@ -65,7 +65,7 @@ sweden <- inner_join(mort, fert5, by=c("Age" = "age"))
 
 An empty 23 x 23 matrix is created first. The two components of the leslie matrix, the fertlity first row and the survivorship subdiagonal, each had a specific process. The first was a loop that took the total person years lived, the survivorship, and the fertility rates by age step to compute each element of the first row. Once the object `A1` is created, we overwrite the first row of our working object `A` using an index on the first row. I used a `survivor`function I wrote previously, along with an indexing appropriate for the subdiagonal to replace the non-structural zeroes in the matrix with the survivorship subdiagonal. The corresponding code for this portion is as follows:
 
-```
+```r
 fab <- 0.4886
 A <- matrix(0, 23, 23)
 rownames(A) <- fert5$age[2:24]
